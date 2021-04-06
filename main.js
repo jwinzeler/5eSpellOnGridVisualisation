@@ -210,6 +210,8 @@ class Spell {
     lastMouseX = 0;
     lastMouseY = 0;
 
+    affectedSquares = 0;
+
     constructor(x, y, radius, isPlacedOnCenter = true, isRadiusFromCenter = true) {
         this.isPlacedOnCenter = isPlacedOnCenter;
         this.initialRadius = radius / 5 * gridSize;
@@ -237,9 +239,11 @@ class Spell {
     }
 
     update() {
+        this.affectedSquares = 0;
         for (let cell of grid.cells) {
             if (cell.isInsideCircle(this.x, this.y, this.diameter / 2)) {
                 cell.color = color(150, 150, 255);
+                this.affectedSquares++;
             } else {
                 cell.color = color(255, 200, 150);
             }
@@ -291,5 +295,10 @@ class Spell {
         ellipse(this.x, this.y, this.diameter, this.diameter);
 
         line(this.x, this.y - this.diameter / 2, this.x, this.y - this.diameter / 2 + this.initialRadius);
+
+        noStroke();
+        fill(0);
+        textSize(20);
+        text(`Hits ${this.affectedSquares} Squares`, 5, 20);
     }
 }
