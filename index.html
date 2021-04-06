@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
+    <script src="main.js"></script>
+  </head>
+  <body>
+      <div class="inputs">
+          <div class="input">
+            <label for="corners">Required Corners</label>
+            <span id="cornersOut">2</span><br />
+            <input type="range" id="corners" name="corners" min="1" max="4">
+          </div>
+          <div class="input">
+            <label for="radius">Radius (Feet)</label>
+            <br />
+            <input type="number" id="radius" name="radius" min="5" max="100">
+          </div>
+          <div class="input">
+            <label for="centered">Center on Square</label>
+            <input type="checkbox" id="centered" name="centered" checked onclick="centeredOnSquareTicked()">
+          </div>
+          <div class="input">
+            <label for="aura">Radius starts at edge</label>
+            <input type="checkbox" id="aura" name="aura" onclick="auraTicked()">
+          </div>
+      </div>
+  </body>
+</html>

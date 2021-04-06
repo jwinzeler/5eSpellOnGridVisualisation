@@ -1,0 +1,31 @@
+html, body {
+    margin: 0;
+}
+
+body {
+    background: rgb(55, 55, 55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inputs {
+    position: absolute;
+    bottom: 8px;
+    left: calc(50%);
+    transform: translateX(-50%);
+    background: rgba(77, 77, 77);
+    padding: 1rem 0;
+    margin-right: 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.input {
+    margin: 0 1rem;
+}
+
+label {
+    user-select: none;
+}
