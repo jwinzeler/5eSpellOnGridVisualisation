@@ -249,7 +249,15 @@ class Spell {
             this.centerCell.color = color(150, 255, 150);
         }
 
-        if (draggable && mouseIsPressed && this.centerCell.contains(mouseX, mouseY)) {
+        const contained = draggable && this.centerCell.contains(mouseX, mouseY);
+
+        if (contained) {
+            document.body.style.cursor = 'pointer';
+        } else {
+            document.body.style.cursor = 'inherit';
+        }
+
+        if (mouseIsPressed && contained) {
             this.dragging = true;
         } else if (!mouseIsPressed && this.lastMouseDown) {
             this.dragging = false;
