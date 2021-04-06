@@ -2,7 +2,7 @@ let gridSize;
 const width = 800;
 
 let grid;
-let spells = [];
+let spell;
 
 let requiredCorners = 2;
 let lastCorners = 2;
@@ -14,6 +14,10 @@ let sizeInput;
 
 let centeredOnSquare = true;
 let aura = true;
+let draggable = false;
+
+let spellX = 0;
+let spellY = 0;
 
 function setup() {
     createCanvas(width, width);
@@ -29,37 +33,75 @@ function setup() {
 
 function centeredOnSquareTicked() {
     centeredOnSquare = !centeredOnSquare;
-    reset();
+    resetDraggable();
 }
 
 function auraTicked() {
     aura = !aura;
+    resetDraggable();
+}
+
+function placeAnywhereTicked() {
+    aura = true;
+    document.getElementById('aura').checked = false;
+    centeredOnSquare = true;
+    document.getElementById('centered').checked = false;
+    draggable = !draggable;
+    frameRate(draggable ? 30 : 10)
+    reset();
+}
+
+function resetDraggable() {
+    if (draggable) {
+        spellX = 0;
+        spellY = 0;
+        draggable = false;
+        document.getElementById('anywhere').checked = false;
+    }
     reset();
 }
 
 function reset() {
+    let offsetX = 0;
+    let offsetY = 0;
+    if (spellX !== 0 && spellY !== 0) {
+        offsetX = spellX - spell.x;
+        offsetY = spellY - spell.y;
+    }
     const offset = centeredOnSquare ? 3 : 2;
     const tempSize = !centeredOnSquare || !aura ? Number(size) + 4 : Number(size) + 2;
     gridSize = width / ((floor(tempSize / 5) * 2) + offset);
     grid = new Grid(width / gridSize);
-    spells = [
-        new Spell(floor(tempSize / 5) + 1, floor(tempSize / 5) + 1, size, centeredOnSquare, aura),
-    ];
+    spell = new Spell(floor(tempSize / 5) + 1, floor(tempSize / 5) + 1, size, centeredOnSquare, aura);
+
+    if (draggable) {
+        console.log(offsetX, offsetY);
+        spell.x -= offsetX;
+        spell.y -= offsetY;
+    }
 }
 
 function draw() {
-    requiredCorners = cornersInput.value;
-    size = sizeInput.value;
-    reset();
-    if (lastCorners !== requiredCorners) {
-        document.getElementById('cornersOut').innerHTML = requiredCorners;
-    }
-
+    update();
     background(55);
     grid.draw();
-    for(let spell of spells) {
-        spell.draw();
+    spell.draw();
+}
+
+function update() {
+    requiredCorners = Number(cornersInput.value);
+    size = Number(sizeInput.value);
+    if (lastCorners !== requiredCorners || lastSize !== size) {
+        if (size > 100) {
+            size = 100;
+            sizeInput.value = 100;
+        }
+        document.getElementById('cornersOut').innerHTML = requiredCorners;
+        reset();
     }
+    spell.update();
+    lastCorners = requiredCorners;
+    lastSize = size;
 }
 
 class Grid {
@@ -121,6 +163,36 @@ class Cell {
 
         return count >= requiredCorners;
     }
+
+    contains(pixelX, pixelY) {
+        return pixelX > this.x * gridSize && pixelX < this.x * gridSize + gridSize && pixelY > this.y * gridSize && pixelY < this.y * gridSize + gridSize;
+    }
+
+    containX(pixelX) {
+        const boundaryA = this.x * gridSize;
+        const boundaryB = this.x * gridSize + gridSize;
+        if (pixelX > boundaryA && pixelX < boundaryB) {
+            return pixelX;
+        } else {
+            if (pixelX > boundaryA) {
+                return boundaryB;
+            }
+        }
+        return boundaryA;
+    }
+
+    containY(pixelY) {
+        const boundaryA = this.y * gridSize;
+        const boundaryB = this.y * gridSize + gridSize;
+        if (pixelY > boundaryA && pixelY < boundaryB) {
+            return pixelY;
+        } else {
+            if (pixelY > boundaryA) {
+                return boundaryB;
+            }
+        }
+        return boundaryA;
+    }
 }
 
 class Spell {
@@ -131,6 +203,13 @@ class Spell {
     isPlacedOnCenter;
 
     initialRadius;
+
+    centerCell;
+
+    lastMouseDown = false;
+    dragging = false;
+    lastMouseX = 0;
+    lastMouseY = 0;
 
     constructor(x, y, radius, isPlacedOnCenter = true, isRadiusFromCenter = true) {
         this.isPlacedOnCenter = isPlacedOnCenter;
@@ -150,15 +229,43 @@ class Spell {
             this.diameter = radius / 5 * 2 * gridSize;
         }
 
+        if (this.isPlacedOnCenter) {
+            this.centerCell = grid.getCellFromCoordinate(x, y);
+        }
+
+        spellX = this.x;
+        spellY = this.y;
+    }
+
+    update() {
         for (let cell of grid.cells) {
             if (cell.isInsideCircle(this.x, this.y, this.diameter / 2)) {
                 cell.color = color(150, 150, 255);
+            } else {
+                cell.color = color(255, 200, 150);
             }
         }
 
-        if (isPlacedOnCenter) {
-            grid.getCellFromCoordinate(x, y).color = color(150, 255, 150);
+        if (this.isPlacedOnCenter) {
+            this.centerCell.color = color(150, 255, 150);
         }
+
+        if (draggable && mouseIsPressed && this.centerCell.contains(mouseX, mouseY)) {
+            this.dragging = true;
+        } else if (!mouseIsPressed && this.lastMouseDown) {
+            this.dragging = false;
+        }
+
+
+
+        if (this.dragging) {
+            this.x = this.centerCell.containX(this.x + mouseX - this.lastMouseX);
+            this.y = this.centerCell.containY(this.y + mouseY - this.lastMouseY);
+        }
+        
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
+        this.lastMouseDown = mouseIsPressed;
     }
 
     draw() {
