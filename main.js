@@ -75,7 +75,6 @@ function reset() {
     spell = new Spell(floor(tempSize / 5) + 1, floor(tempSize / 5) + 1, size, centeredOnSquare, aura);
 
     if (draggable) {
-        console.log(offsetX, offsetY);
         spell.x -= offsetX;
         spell.y -= offsetY;
     }
